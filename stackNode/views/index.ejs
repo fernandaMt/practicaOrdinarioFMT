@@ -1,0 +1,163 @@
+<% include ../views/header %>
+<!-- h1><%=message%></h1 -->
+<!-- menu -->
+	<!-- Contenido -->
+	<h3>Listado de productos</h3>
+	<button title='Agregar' class='btn btn-success addX float-right' data-toggle='modal' data-target='#myModal'>Agregar</button>
+	<table class="table">
+	  <thead>
+	    <tr>
+	      <th>#</th>
+	      <th>Producto</th>
+	      <th>Precio</th>
+	      <th>Cantidad</th>
+	      <th>Acciones</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	  <% if (datos) { 
+	  	for(var i=0; i < datos.length; i++) { %>
+		   <tr>
+		   	 <th scope="row"><%= i+1 %></th>
+		     <td><%= datos[i].producto %></td>
+		     <td><%= datos[i].precio %></td>
+		     <td><%= datos[i].cantidad %></td>
+		     <td>
+		     	<button  value='<%= datos[i].id %>' title='Editar' class='btn btn-primary update'><i class="fa fa-pencil-square-o" aria-hidden="true"></i>Editar</button>
+		     	<button class="btn btn-danger delete" data-toggle='confirmation' value="<%= datos[i].id %>" onclick="verifica('<%= datos[i].id %>')">  <i class="fa fa-times" aria-hidden="true"></i> Borrar</button> 
+		     </td>
+		   </tr>
+	  <% }
+	  } %>
+	  </tbody>
+	</table>
+
+<!-- incluimos la modal -->
+<% include ../views/modal %>
+
+<script>
+"use strict";
+	/*Función para confirmar el borrar*/
+	function verifica(idA){
+		if(confirm("¿Desea eliminar este registro?")){
+		  /*window.location.href=ruta;*/
+		  setDeleteEvent(idA);
+		}
+	}
+
+	function setDeleteEvent(id) 
+	{
+		var idA= id;
+
+		$.ajax({
+		  url: "./api/producto/"+idA,
+		  type: 'delete',
+		  dataType: '',
+		  data: '',
+		  success: function (data) {
+		  	console.log(data);
+		  	   location.reload();
+		       (data.res == true) ? alert("Registro Borrado") : alert("No Borrado");
+		       
+		   },
+		})
+		.fail(function(err) {
+		        alert("Hubo error: "+err);
+	           
+		});
+	}
+
+	/*Se ejecuta hacer click en boton guardar de la modal - Guarda los cambios en la BD*/
+	function updateProducto(id) 
+	{
+		var idA= id;
+
+		var json = {
+	        producto: $('#producto').val(),
+	        precio: $('#precio').val(),
+	        cantidad: $('#cantidad').val(),
+	        importe: Number($('#precio').val()*$('#cantidad').val())
+	      };
+	      //alert(json.importe);
+		$.ajax({
+		  url: "./api/producto/"+idA,
+		  type: 'put',
+		  dataType: 'json',
+		  data: json,
+		  success: function (data) {
+		  	//console.log(data);
+		       (data.res == true) ? alert("Registro actualizado con exito") : alert("Registro No Actualizado");
+		       location.reload();
+		   },
+		})
+		.fail(function(err) {
+		        alert("Hubo error: "+err);
+	           
+		});
+	}
+
+	const sendData = function(update) {
+		if( update == -1 ) { postProducto() }
+		else { updateProducto(update) }
+	}
+
+	const postProducto = function() {
+
+		var produ = $('#producto').val();
+		var prec = $('#precio').val();
+		var cant = $('#cantidad').val();
+		var total = Number(prec*cant);
+		//alert(total);
+		if( produ != "" ) {
+			$.ajax({
+			  method: "POST",
+			  url: "./api/producto",
+			  data: { producto : produ, precio : prec, cantidad : cant, importe: total }
+			})
+			.done(function( data ) {
+		     	console.log(data);
+		     	cierraModal();
+		     	(data.res == true) ? alert("Registro agregado con exito") : alert("Registro No agregado");
+		       	location.reload();
+
+		  	});
+		}
+	}
+
+function cierraModal() {
+	//alert("Cerrando");
+    $("#cerrar").click();//ocultamos el modal
+    $('.modal-backdrop').remove();//eliminamos el backdrop del modal
+}
+	/*Se lanza al hacer click en boton editar - Carga con los datos de la BD los input*/
+	$('.update').click(function(){
+		var idU= $(this).val();
+		$.ajax({
+		  method: "GET",
+		  url: "./api/producto/"+idU
+		})
+		.done(function( data ) {
+	     	console.log(data);
+	     	$("#exampleModalLabel").text("Editar producto");
+	     	$("#producto").val(data[0].producto);
+		    $("#precio").val(data[0].precio);
+		    $("#cantidad").val(data[0].cantidad);
+		    $('#btnSend').val(data[0].id);
+		    $('#myModal').modal('show');
+		    //$("#correo1").val(data.precio);
+	  });
+		
+	});
+
+	/*Lanzar modal - Limpiar campos*/
+	$('.addX').click(function(){
+		$("#exampleModalLabel").text("Agregar producto Node");
+		//$('#btnSend').val(null);
+		$("#producto").val(null);
+		$("#precio").val(null);
+		$("#cantidad").val(null);
+	});
+</script>
+
+<!-- pie de página -->
+<% include ../views/footer %>
