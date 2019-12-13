@@ -5,10 +5,11 @@ const bodyParser = require('body-parser');
 var mysql = require('mysql');
 //Conectando con MySql
 var con = mysql.createConnection({
-  host: "localhost",
-  user: "usuario",
-  password: "contraseña",
-  database: "base de datos"
+  host: "basededatos",
+  user: "root",
+  password: "r00t",
+  database: "abarrotes",
+  port: "3200"
 });
 
 router.post('/', function(req, res) {
